@@ -45,6 +45,8 @@ else:
 	# OpenCV object tracker objects
 	tracker = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
 
+temp = None
+
 # initialize the bounding box coordinates of the object we are going
 # to track
 initBB = None
@@ -56,7 +58,8 @@ fps = None
 
 # loop over frames from the video stream
 img_n = 0
-while True:	
+key = ord("s")
+while True:
 	print(img_n)
 	# grab the current frame, then handle if we are using a
 	# VideoStream or VideoCapture object
@@ -104,7 +107,6 @@ while True:
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
-	key = cv2.waitKey(1) & 0xFF
 
 	# if the 's' key is selected, we are going to "select" a bounding
 	# box to track
@@ -122,6 +124,9 @@ while True:
 	# if the `q` key was pressed, break from the loop
 	elif key == ord("q"):
 		break
+
+	key = cv2.waitKey(1) & 0xFF
+
 
 # if we are using a webcam, release the pointer
 if not args.get("video", False):
