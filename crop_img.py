@@ -60,9 +60,11 @@ while cap.isOpened():
 		# check to see if the tracking was a success
 		if success:
 			(x, y, w, h) = [int(v) for v in box]
+
+			# adding padding in imgs
 			ROI = frame[y-int(padding):y+h+int(padding), x-int(padding):x+w+int(padding)]
 			cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)		
-			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+			cv2.rectangle(frame, (x - int(padding), y  - int(padding)), (x + w +int(padding), y + h +int(padding)), (0, 255, 0), 2)
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
