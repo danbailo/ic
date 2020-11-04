@@ -1,8 +1,3 @@
-# USAGE
-# python opencv_object_tracking.py
-# python opencv_object_tracking.py --video dashcam_boston.mp4 --tracker csrt
-
-# import the necessary packages
 import argparse
 import imutils
 import cv2
@@ -30,7 +25,7 @@ temp = None
 # to track
 initBB = None
 
-vs = cv2.VideoCapture(args["video"])
+cap = cv2.VideoCapture(args["video"])
 
 # loop over frames from the video stream
 img_n = -1
@@ -42,14 +37,14 @@ if op.lower() in ["s","y"]:
 	for f in filelist:
 		os.remove(os.path.join("images", f))
 
-while True:
-	# grab the current frame, then handle if we are using a VideoStream or VideoCapture object
-	frame = vs.read()
-	# frame = frame[1] if args.get("video", False) else frame
-	frame = frame[1]
+padding = input("add padding? ")
+
+while cap.isOpened():
+	# grab the current frame, then handle if we are using a VideoCapture object
+	ret, frame = cap.read()
 
 	# check to see if we have reached the end of the stream
-	if frame is None:
+	if not ret:
 		break
 
 	# resize the frame (so we can process it faster) and grab the frame dimensions
@@ -63,9 +58,9 @@ while True:
 		(success, box) = tracker.update(frame)
 
 		# check to see if the tracking was a success
-		if success:		
+		if success:
 			(x, y, w, h) = [int(v) for v in box]
-			ROI = frame[y:y+h, x:x+w]
+			ROI = frame[y-int(padding):y+h+int(padding), x-int(padding):x+w+int(padding)]
 			cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)		
 			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
@@ -77,8 +72,7 @@ while True:
 	if key == ord("s"):
 		# select the bounding box of the object we want to track (make
 		# sure you press ENTER or SPACE after selecting the ROI)
-		initBB = cv2.selectROI("Frame", frame, fromCenter=False,
-			showCrosshair=True)
+		initBB = cv2.selectROI("Frame", frame, fromCenter=False, showCrosshair=True)
 		
 		# start OpenCV object tracker using the supplied bounding box coordinates
 		tracker.init(frame, initBB)
@@ -88,7 +82,9 @@ while True:
 		break
 
 	key = cv2.waitKey(1) & 0xFF
-vs.release()
+
+# When everything done, release the video capture object
+cap.release()
 
 # close all windows
 cv2.destroyAllWindows()
