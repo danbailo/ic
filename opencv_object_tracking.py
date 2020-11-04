@@ -3,7 +3,6 @@
 # python opencv_object_tracking.py --video dashcam_boston.mp4 --tracker csrt
 
 # import the necessary packages
-from imutils.video import FPS
 import argparse
 import imutils
 import cv2
@@ -65,23 +64,6 @@ while True:
 			ROI = frame[y:y+h, x:x+w]
 			cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)		
 			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-		# update the FPS counter
-		fps.update()
-		fps.stop()
-
-		# initialize the set of information we'll be displaying on
-		# the frame
-		# info = [
-		# 	("Tracker", args["tracker"]),
-		# 	("Success", "Yes" if success else "No"),
-		# 	("FPS", "{:.2f}".format(fps.fps())),
-		# ]
-
-		# # loop over the info tuples and draw them on our frame
-		# for (i, (k, v)) in enumerate(info):
-		# 	text = "{}: {}".format(k, v)
-		# 	cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
-		# 		cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
@@ -97,22 +79,13 @@ while True:
 		# start OpenCV object tracker using the supplied bounding box
 		# coordinates, then start the FPS throughput estimator as well
 		tracker.init(frame, initBB)
-		fps = FPS().start()
 
 	# if the `q` key was pressed, break from the loop
 	elif key == ord("q"):
 		break
 
 	key = cv2.waitKey(1) & 0xFF
-
-
-# if we are using a webcam, release the pointer
-if not args.get("video", False):
-	vs.stop()
-
-# otherwise, release the file pointer
-else:
-	vs.release()
+vs.release()
 
 # close all windows
 cv2.destroyAllWindows()
