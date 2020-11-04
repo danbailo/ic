@@ -6,6 +6,7 @@
 import argparse
 import imutils
 import cv2
+import os
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -37,6 +38,13 @@ fps = None
 # loop over frames from the video stream
 img_n = -1
 key = ord("s")
+
+op = input("Delete all images? ")
+if op.lower() in ["s","y"]:
+	filelist = [ f for f in os.listdir("images") if f.endswith(".jpg") ]
+	for f in filelist:
+		os.remove(os.path.join("images", f))
+
 while True:
 	# grab the current frame, then handle if we are using a VideoStream or VideoCapture object
 	frame = vs.read()
@@ -47,9 +55,8 @@ while True:
 	if frame is None:
 		break
 
-	# resize the frame (so we can process it faster) and grab the
-	# frame dimensions
-	frame = imutils.resize(frame, width=500)
+	# resize the frame (so we can process it faster) and grab the frame dimensions
+	frame = imutils.resize(frame, width=1000)
 	(H, W) = frame.shape[:2]
 
 	# check to see if we are currently tracking an object
@@ -63,7 +70,7 @@ while True:
 			(x, y, w, h) = [int(v) for v in box]
 			ROI = frame[y:y+h, x:x+w]
 			cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)		
-			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
+			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
