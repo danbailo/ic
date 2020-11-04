@@ -55,7 +55,9 @@ vs = cv2.VideoCapture(args["video"])
 fps = None
 
 # loop over frames from the video stream
-while True:
+img_n = 0
+while True:	
+	print(img_n)
 	# grab the current frame, then handle if we are using a
 	# VideoStream or VideoCapture object
 	frame = vs.read()
@@ -72,17 +74,16 @@ while True:
 
 	# check to see if we are currently tracking an object
 	if initBB is not None:
+		img_n += 1
 		# grab the new bounding box coordinates of the object
 		(success, box) = tracker.update(frame)
 
 		# check to see if the tracking was a success
-		if success:
+		if success:		
 			(x, y, w, h) = [int(v) for v in box]
-			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			ROI = frame[y:y+h, x:x+w]
-			cv2.imwrite('ROI.jpg', ROI)
-			# cv2.imwrite("test2.jpg", frame)
-
+			cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)		
+			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 		# update the FPS counter
 		fps.update()
 		fps.stop()
