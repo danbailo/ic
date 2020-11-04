@@ -32,9 +32,6 @@ initBB = None
 
 vs = cv2.VideoCapture(args["video"])
 
-# initialize the FPS throughput estimator
-fps = None
-
 # loop over frames from the video stream
 img_n = -1
 key = ord("s")
@@ -83,8 +80,7 @@ while True:
 		initBB = cv2.selectROI("Frame", frame, fromCenter=False,
 			showCrosshair=True)
 		
-		# start OpenCV object tracker using the supplied bounding box
-		# coordinates, then start the FPS throughput estimator as well
+		# start OpenCV object tracker using the supplied bounding box coordinates
 		tracker.init(frame, initBB)
 
 	# if the `q` key was pressed, break from the loop
