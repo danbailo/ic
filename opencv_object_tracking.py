@@ -63,7 +63,7 @@ while True:
 			(x, y, w, h) = [int(v) for v in box]
 			ROI = frame[y:y+h, x:x+w]
 			cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)		
-			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
