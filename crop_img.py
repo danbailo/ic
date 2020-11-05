@@ -3,6 +3,13 @@ import imutils
 import cv2
 import os
 
+#################
+# TO DO
+# selecionar tempo para inicio e fim do track
+# multitrack
+#################
+
+
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str,
