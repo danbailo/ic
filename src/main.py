@@ -12,6 +12,12 @@ from utils import (create_args,
 # multitrack
 #################
 
+###
+# perguntar p/ professor se ele acha melhor o programa comecar travado pro usuario inserir os tempos
+# ou deixar o video rolar e ele pauser pra dps comecar o tracking
+#
+###
+
 if __name__ == "__main__":
 	args = create_args()
 	tracker = cv2.TrackerCSRT_create()
@@ -23,9 +29,11 @@ if __name__ == "__main__":
 	cap = cv2.VideoCapture(args["video"])
 	time_to_start = set_start_video(cap)
 	cap.set(cv2.CAP_PROP_POS_MSEC, (time_to_start))
-	time_to_end = get_end_video(cap)
+	while True:
+		time_to_end = get_end_video(cap)
+		if time_to_end > time_to_start: break
 
-	img_n = -1
+	img_n = 0
 	key = ord("s")
 
 	delete_imgs()
@@ -35,12 +43,12 @@ if __name__ == "__main__":
 	while cap.isOpened():
 		# grab the current frame, then handle if we are using a VideoCapture object
 		ret, frame = cap.read()
-
+		
 		if cap.get(cv2.CAP_PROP_POS_MSEC) >= time_to_end:
 			cv2.destroyAllWindows()
 			extract_more = input("\nDo you wanna extract more frames? (Y) or (N): ")
 
-			if extract_more.lower() in ["s","y"]:
+			if extract_more.lower() in ["s","y"]:			
 				print(cap.get(cv2.CAP_PROP_POS_MSEC))
 				
 				#RESET THE TRACKING
@@ -59,6 +67,8 @@ if __name__ == "__main__":
 					if time_to_end > time_to_start:
 						break
 
+				pad = add_pad()
+
 				#set the frame to the new position
 				ret, frame = cap.read()
 				key = ord("s")
@@ -67,16 +77,14 @@ if __name__ == "__main__":
 				break
 
 		# check to see if we have reached the end of the stream
-		if not ret:
-			break
+		if not ret: break
 
 		# resize the frame (so we can process it faster) and grab the frame dimensions
 		frame = imutils.resize(frame, width=1000)
 		(H, W) = frame.shape[:2]
 
 		# check to see if we are currently tracking an object
-		if initBB is not None:
-			img_n += 1
+		if initBB is not None:			
 			# grab the new bounding box coordinates of the object
 			(success, box) = tracker.update(frame)
 
@@ -85,8 +93,14 @@ if __name__ == "__main__":
 				(x, y, w, h) = [int(v) for v in box]
 
 				# adding pad in imgs
+				# ROI.size != 0 -> check if an image is OK to save
 				ROI = frame[y-int(pad):y+h+int(pad), x-int(pad):x+w+int(pad)]
-				cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)		
+				try:
+					cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)
+					img_n += 1
+				except Exception as err:
+					print("The pad can cause this error")
+					print(f"an error occurred when save img: {err}")
 				cv2.rectangle(frame, (x - int(pad), y  - int(pad)), (x + w +int(pad), y + h +int(pad)), (0, 255, 0), 2)
 
 		# show the output frame
