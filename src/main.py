@@ -43,7 +43,7 @@ if __name__ == "__main__":
 			if extract_more.lower() in ["s","y"]:
 				print(cap.get(cv2.CAP_PROP_POS_MSEC))
 				
-				#RESET INITAL TRACKING
+				#RESET THE TRACKING
 				tracker.clear()
 				tracker = cv2.TrackerCSRT_create()
 				initBB = None
