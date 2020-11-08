@@ -1,40 +1,16 @@
-import argparse
 import imutils
 import cv2
 import os
+from utils import (create_args,
+				   delete_imgs,
+				   set_start_video,
+				   get_end_video,
+				   add_pad)
 
 #################
 # TO DO
-# selecionar tempo para inicio e fim do track
 # multitrack
 #################
-
-def create_args():
-	# construct the argument parser and parse the arguments
-	ap = argparse.ArgumentParser()
-	ap.add_argument("-v",
-					"--video",
-					type=str, 
-					help="path to input video file")
-	return vars(ap.parse_args())	
-
-def delete_imgs():
-	op = input("Delete all images? ")
-	if op.lower() in ["s","y"]:
-		filelist = [ f for f in os.listdir("images") if f.endswith(".jpg") ]
-		for f in filelist:
-			os.remove(os.path.join("images", f))
-
-def set_start_video(cap):
-	start = float(input("Input the time that you wish start the cut: "))
-	return start*1000.0
-
-def get_end_video(cap):
-	end = float(input("Input the time that you wish end the cut: "))
-	return end*1000.0
-
-def add_pad():
-	return input("Input the value of the pad: ")
 
 if __name__ == "__main__":
 	args = create_args()
@@ -55,8 +31,7 @@ if __name__ == "__main__":
 	delete_imgs()
 
 	pad = add_pad()
-	
-	# loop over frames from the video stream
+
 	while cap.isOpened():
 		# grab the current frame, then handle if we are using a VideoCapture object
 		ret, frame = cap.read()
@@ -66,9 +41,13 @@ if __name__ == "__main__":
 			extract_more = input("\nDo you wanna extract more frames? (Y) or (N): ")
 
 			if extract_more.lower() in ["s","y"]:
-				# print(cap.get(cv2.CAP_PROP_POS_MSEC))
+				print(cap.get(cv2.CAP_PROP_POS_MSEC))
+				
+				#RESET INITAL TRACKING
 				tracker.clear()
 				tracker = cv2.TrackerCSRT_create()
+				initBB = None
+				
 				while True:
 					time_to_start = set_start_video(cap)
 					if time_to_start > cap.get(cv2.CAP_PROP_POS_MSEC):
@@ -79,7 +58,11 @@ if __name__ == "__main__":
 					time_to_end = get_end_video(cap)
 					if time_to_end > time_to_start:
 						break
+
+				#set the frame to the new position
+				ret, frame = cap.read()
 				key = ord("s")
+				print(cap.get(cv2.CAP_PROP_POS_MSEC))
 			else: 
 				break
 
