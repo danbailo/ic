@@ -26,11 +26,11 @@ def delete_imgs():
 			os.remove(os.path.join("images", f))
 
 def set_start_video(cap):
-	start = int(input("Input the time that you wish start the cut: "))
+	start = float(input("Input the time that you wish start the cut: "))
 	return start*1000.0
 
 def get_end_video(cap):
-	end = int(input("Input the time that you wish end the cut: "))
+	end = float(input("Input the time that you wish end the cut: "))
 	return end*1000.0
 
 def add_pad():
@@ -63,10 +63,12 @@ if __name__ == "__main__":
 
 		if cap.get(cv2.CAP_PROP_POS_MSEC) >= time_to_end:
 			cv2.destroyAllWindows()
-			extract_more = input("Do you wanna extract more frames? (Y) or (N): ")
+			extract_more = input("\nDo you wanna extract more frames? (Y) or (N): ")
 
 			if extract_more.lower() in ["s","y"]:
-				print(cap.get(cv2.CAP_PROP_POS_MSEC))
+				# print(cap.get(cv2.CAP_PROP_POS_MSEC))
+				tracker.clear()
+				tracker = cv2.TrackerCSRT_create()
 				while True:
 					time_to_start = set_start_video(cap)
 					if time_to_start > cap.get(cv2.CAP_PROP_POS_MSEC):
