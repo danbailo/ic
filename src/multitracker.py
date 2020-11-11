@@ -2,6 +2,11 @@ import cv2
 from core.crop import Crop
 import imutils
 
+# TO DO
+# crop images, save each group in a folder
+#
+#
+#
 def init_tracker(bboxes, frame):
     # Create MultiTracker object
     multiTracker = cv2.MultiTracker_create()
@@ -43,8 +48,10 @@ if __name__ == "__main__":
         if crop.get_current_time() >= time_to_end:
             cv2.destroyAllWindows()
 
+            print(f"\n-> Current time in video: {round(crop.get_current_time()/1000, 2)} seconds")
             if crop.extract_more():
               
+
                 while True:
                     time_to_start = crop.set_start_video()
                     if time_to_start > crop.get_current_time():

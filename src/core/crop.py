@@ -37,13 +37,16 @@ class Crop:
             print()
             bbox = cv2.selectROI('IC - D&D', init_frame)
             
+            if bbox == (0, 0, 0, 0): #esc pressed
+                exit()
+
             if len(bbox) == 0: #esc pressed
                 print("\nNo one bounding box detected, exiting...")
                 exit()
-                
+
             bboxes.append(bbox)
             print(f"\nNUMBER OF TRACKERS: {n_of_trackers}")
-            create_more = input("Do you wanna create more trackers? ")
+            create_more = input("Do you wanna CREATE more trackers? ")
             if create_more.lower() in ["n"]:
                 break
             n_of_trackers += 1
@@ -85,5 +88,5 @@ class Crop:
 
     @staticmethod
     def extract_more():
-        extract_more = input("\nDo you wanna extract more frames? ")
+        extract_more = input("\nDo you wanna EXTRACT more frames? ")
         return True if extract_more.lower() in ["s","y"] else False
