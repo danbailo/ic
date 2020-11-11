@@ -9,13 +9,18 @@ from utils import (create_args,
 
 #################
 # TO DO
-# multitrack
+# tentar fazer multitrack até sexta 13/11
+#
+# Se nao der, tenho ate dia 20 pra rodar um exemplo no colab 
+# do bolt com a tensorflow
+#
 #################
 
 ###
 # perguntar p/ professor se ele acha melhor o programa comecar travado pro usuario inserir os tempos
 # ou deixar o video rolar e ele pauser pra dps comecar o tracking
-#
+# 
+# o tempo é p/ pegar conteudo util do video
 ###
 
 if __name__ == "__main__":
@@ -25,6 +30,7 @@ if __name__ == "__main__":
 	# initialize the bounding box coordinates of the object we are going
 	# to track
 	initBB = None
+	img_n = 0
 	
 	cap = cv2.VideoCapture(args["video"])
 	time_to_start = set_start_video(cap)
@@ -33,7 +39,6 @@ if __name__ == "__main__":
 		time_to_end = get_end_video(cap)
 		if time_to_end > time_to_start: break
 
-	img_n = 0
 	key = ord("s")
 
 	delete_imgs()
