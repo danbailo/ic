@@ -18,13 +18,13 @@ class Crop:
     ]    
 
     def __init__(self, cap, resize=None):
-        self.cap = cap
+        self.video = cap
         self.resize = resize
 
     def select_bboxes(self):
         n_of_trackers = 1
         bboxes = []
-        retval, init_frame = self.cap.read()
+        retval, init_frame = self.video.read()
         if not retval:
             print('Failed to read video')
             exit()
@@ -50,8 +50,11 @@ class Crop:
         return bboxes, init_frame
 
     def update_time_video(self, time_to_start):
-        self.cap.set(cv2.CAP_PROP_POS_MSEC, (time_to_start))
-        self.cap.read()
+        self.video.set(cv2.CAP_PROP_POS_MSEC, (time_to_start))
+        self.video.read()
+
+    def get_current_time(self):
+        return self.video.get(cv2.CAP_PROP_POS_MSEC)        
 
     @staticmethod
     def delete_imgs():
@@ -74,3 +77,8 @@ class Crop:
     @staticmethod
     def add_pad():
         return int(input("Input the value of the pad: "))
+
+    @staticmethod
+    def extract_more():
+        extract_more = input("\nDo you wanna extract more frames? ")
+        return True if extract_more.lower() in ["s","y"] else False
