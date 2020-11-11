@@ -4,6 +4,7 @@ import imutils
 
 class Crop:
 
+    #RGB (OpenCV works on BGR)
     colors = [
         (255, 0, 0), # red
         (0, 255, 0), # green

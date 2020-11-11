@@ -3,8 +3,8 @@ from core.crop import Crop
 import imutils
 
 # TO DO
+# test the pad - OK
 # crop images, save each group in a folder
-#
 #
 #
 def init_tracker(bboxes, frame):
@@ -77,7 +77,9 @@ if __name__ == "__main__":
             x, y, w, h = newbox
             p1 = (int(x), int(y))
             p2 = (int(x + w), int(y + h))
-            cv2.rectangle(frame, p1, p2, crop.colors[i], 2)
+            p1_pad = (p1[0] - pad, p1[1] - pad)
+            p2_pad = (p2[0] + pad, p2[1] + pad)
+            cv2.rectangle(frame, p1_pad, p2_pad, crop.colors[i], 2)
 
         # show frame        
         cv2.imshow('IC - D&D', frame)
