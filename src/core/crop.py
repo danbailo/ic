@@ -1,6 +1,7 @@
 import os
 import cv2
 import imutils
+import shutil
 
 class Crop:
 
@@ -22,7 +23,7 @@ class Crop:
         self.file_name = file_name
         self.video = video
         self.resize = resize
-        self.n_of_slices = 0
+        self.n_of_slices = 1
 
     def select_bboxes(self):
         self.n_of_trackers = 1
@@ -68,10 +69,15 @@ class Crop:
         return self.video.get(cv2.CAP_PROP_POS_MSEC)
 
     def create_img_folder(self):
-        for i in range(self.n_of_trackers):
-            path = os.path.join(".","imgs",self.file_name+"_slice-"+str(self.n_of_slices)+"_track-"+str(i))
+        for i in range(1, self.n_of_trackers+1):
+            path = os.path.join(".","imgs",self.file_name+"_slice-"+str(self.n_of_slices)+"_tracker-"+str(i))
             if not os.path.isdir(path):
                 os.makedirs(path)
+
+    def crop_img(self, frame, n_of_tracker, n_of_frame):
+        path = os.path.join(".", "imgs", self.file_name+"_slice-"+str(self.n_of_slices)+"_tracker-"+str(n_of_tracker+1)) #+1 to order the name of file
+        filename = os.path.join(path,"frame_"+str(n_of_frame[n_of_tracker])+".jpg")
+        cv2.imwrite(filename, frame)
 
     @staticmethod
     def init_tracker(bboxes, frame):
@@ -100,11 +106,12 @@ class Crop:
         return True if extract_more.lower() in ["s","y"] else False
 
     @staticmethod
-    def delete_imgs(path=os.path.join("imgs","")):
+    def delete_imgs(path=os.path.join(".", "imgs", "")):
         # op = input("Delete all images folders? ")
         op = "y"
         if op.lower() in ["s","y"]:
-            filelist = [f for f in os.listdir(path)]
-            for f in filelist:
-                os.removedirs(os.path.join(path,f))
+            if os.path.isdir(path):
+                filelist = [f for f in os.listdir(path)]
+                for f in filelist:
+                    shutil.rmtree(os.path.join(path,f))
     
