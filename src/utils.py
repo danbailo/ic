@@ -26,4 +26,4 @@ def get_end_video(cap):
 	return end*1000.0
 
 def add_pad():
-	return input("Input the value of the pad: ")
+	return int(input("Input the value of the pad: "))
