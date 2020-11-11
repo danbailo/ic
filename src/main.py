@@ -1,136 +1,99 @@
-import imutils
 import cv2
+from core.crop import Crop
+import imutils
 import os
-from utils import (create_args,
-				   delete_imgs,
-				   set_start_video,
-				   get_end_video,
-				   add_pad)
 
-#################
 # TO DO
-# tentar fazer multitrack até sexta 13/11
-#
-# Se nao der, tenho ate dia 20 pra rodar um exemplo no colab 
-# do bolt com a tensorflow
-#
-#################
-
-###
-# perguntar p/ professor se ele acha melhor o programa comecar travado pro usuario inserir os tempos
-# ou deixar o video rolar e ele pauser pra dps comecar o tracking
-# 
-# o tempo é p/ pegar conteudo util do video
-###
+# test the pad - OK
+# crop images, save each group in a folder - OK
 
 if __name__ == "__main__":
-	args = create_args()
-	tracker = cv2.TrackerCSRT_create()
-	temp = None
-	# initialize the bounding box coordinates of the object we are going
-	# to track
-	initBB = None
-	img_n = 0
-	
-	cap = cv2.VideoCapture(args["video"])
-	time_to_start = set_start_video(cap)
-	cap.set(cv2.CAP_PROP_POS_MSEC, (time_to_start))
-	while True:
-		time_to_end = get_end_video(cap)
-		if time_to_end > time_to_start: break
+    Crop.delete_imgs()
 
-	key = ord("s")
+    file_name = "race.mp4"
 
-	delete_imgs()
+    cap = cv2.VideoCapture(os.path.join("videos",file_name))
 
-	pad = add_pad()
+    splited_name = file_name.split(".")
+    file_name = splited_name[0]+"-"+splited_name[1]
 
-	while cap.isOpened():
-		# grab the current frame, then handle if we are using a VideoCapture object
-		ret, frame = cap.read()
-		
-		if cap.get(cv2.CAP_PROP_POS_MSEC) >= time_to_end:
-			cv2.destroyAllWindows()
-			extract_more = input("\nDo you wanna extract more frames? (Y) or (N): ")
+    crop = Crop(file_name=file_name,
+                video=cap,
+                resize={"bool":True, "width": 700})
 
-			if extract_more.lower() in ["s","y"]:			
-				print(cap.get(cv2.CAP_PROP_POS_MSEC))
-				
-				#RESET THE TRACKING
-				tracker.clear()
-				tracker = cv2.TrackerCSRT_create()
-				initBB = None
-				
-				while True:
-					time_to_start = set_start_video(cap)
-					if time_to_start > cap.get(cv2.CAP_PROP_POS_MSEC):
-						break
-				cap.set(cv2.CAP_PROP_POS_MSEC, (time_to_start))
-				
-				while True:
-					time_to_end = get_end_video(cap)
-					if time_to_end > time_to_start:
-						break
+    time_to_start = crop.set_start_video()
+    time_to_end = crop.set_end_video()
+    pad = crop.add_pad()
 
-				pad = add_pad()
+    crop.update_time_video(time_to_start)
+    bboxes, frame = crop.select_bboxes()
+    multiTracker = crop.init_tracker(bboxes=bboxes, frame=frame)
 
-				#set the frame to the new position
-				ret, frame = cap.read()
-				key = ord("s")
-				print(cap.get(cv2.CAP_PROP_POS_MSEC))
-			else: 
-				break
+    names_of_frames = {}
+    while True:
 
-		# check to see if we have reached the end of the stream
-		if not ret: break
+        retval, frame = crop.video.read()
 
-		# resize the frame (so we can process it faster) and grab the frame dimensions
-		frame = imutils.resize(frame, width=1000)
-		(H, W) = frame.shape[:2]
+        # end of video
+        if not retval:
+            break
 
-		# check to see if we are currently tracking an object
-		if initBB is not None:			
-			# grab the new bounding box coordinates of the object
-			(success, box) = tracker.update(frame)
+        #resize the frame
+        if crop.resize["bool"]:
+            frame = imutils.resize(frame, width=crop.resize["width"])        
 
-			# check to see if the tracking was a success
-			if success:
-				(x, y, w, h) = [int(v) for v in box]
+        if crop.get_current_time() >= time_to_end:
+            cv2.destroyAllWindows()
 
-				# adding pad in imgs
-				# ROI.size != 0 -> check if an image is OK to save
-				ROI = frame[y-int(pad):y+h+int(pad), x-int(pad):x+w+int(pad)]
-				try:
-					cv2.imwrite(f'images/frame_{img_n}.jpg', ROI)
-					img_n += 1
-				except Exception as err:
-					print("The pad can cause this error")
-					print(f"an error occurred when save img: {err}")
-				cv2.rectangle(frame, (x - int(pad), y  - int(pad)), (x + w +int(pad), y + h +int(pad)), (0, 255, 0), 2)
+            print(f"\n-> Current time in video: {round(crop.get_current_time()/1000, 2)} seconds")
+            if crop.extract_more():              
+                while True:
+                    time_to_start = crop.set_start_video()
+                    if time_to_start > crop.get_current_time():
+                        break
 
-		# show the output frame
-		cv2.imshow("Frame", frame)
+                crop.update_time_video(time_to_start)
+                
+                while True:
+                    time_to_end = crop.set_end_video()
+                    if time_to_end > time_to_start:
+                        break
+                pad = crop.add_pad()
 
-		# if the 's' key is selected, we are going to "select" a bounding
-		# box to track
-		if key == ord("s"):
-			# select the bounding box of the object we want to track (make
-			# sure you press ENTER or SPACE after selecting the ROI)
-			initBB = cv2.selectROI("Frame", frame, fromCenter=False, showCrosshair=True)
-			
-			# start OpenCV object tracker using the supplied bounding box coordinates
-			tracker.init(frame, initBB)
+                bboxes, frame = crop.select_bboxes()                
+                crop.n_of_slices += 1                
+                multiTracker = crop.init_tracker(bboxes=bboxes, frame=frame)
+                names_of_frames.clear()
+            else: 
+                break
+      
+        success, boxes = multiTracker.update(frame)
 
-		# if the `q` key was pressed, break from the loop
-		elif key == ord("q"):
-			break
+        for i, newbox in enumerate(boxes):
+            x, y, w, h = newbox
+            x, y, w, h = int(x), int(y), int(w), int(h)
+            p1 = (x, y)
+            p2 = (x + w, y + h)
+            p1_pad = (p1[0] - pad, p1[1] - pad)
+            p2_pad = (p2[0] + pad, p2[1] + pad)
+        
+            ROI = frame[y-pad:y+h+pad, x-pad:x+w+pad]
+            crop.create_img_folder()         
 
-		key = cv2.waitKey(1) & 0xFF
+            if not names_of_frames.get(i):
+                names_of_frames[i] = 1
 
-	# When everything done, release the video capture object
-	cap.release()
+            crop.crop_img(ROI, i, names_of_frames)
+            names_of_frames[i] += 1
+            
+            cv2.rectangle(frame, p1_pad, p2_pad, crop.colors[i], 2)
 
-	# close all windows
-	cv2.destroyAllWindows()
+        cv2.imshow('IC - D&D', frame)
+        
+        # close
+        if cv2.waitKey(1) & 0xFF == 27:  # Esc pressed
+            break
 
-
+    crop.video.release()
+    cap.release()
+    cv2.destroyAllWindows()
