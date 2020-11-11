@@ -35,7 +35,12 @@ class Crop:
             if self.resize["bool"]:
                 init_frame = imutils.resize(init_frame, width=self.resize["width"])
             print()
-            bbox = cv2.selectROI('MultiTracker', init_frame)
+            bbox = cv2.selectROI('IC - D&D', init_frame)
+            
+            if len(bbox) == 0: #esc pressed
+                print("\nNo one bounding box detected, exiting...")
+                exit()
+                
             bboxes.append(bbox)
             print(f"\nNUMBER OF TRACKERS: {n_of_trackers}")
             create_more = input("Do you wanna create more trackers? ")
