@@ -18,12 +18,14 @@ class Crop:
         (128, 128, 128), #grey
     ]    
 
-    def __init__(self, cap, resize=None):
-        self.video = cap
+    def __init__(self, file_name, video, resize=None):
+        self.file_name = file_name
+        self.video = video
         self.resize = resize
+        self.n_of_slices = 0
 
     def select_bboxes(self):
-        n_of_trackers = 1
+        self.n_of_trackers = 1
         bboxes = []
         retval, init_frame = self.video.read()
         if not retval:
@@ -46,11 +48,11 @@ class Crop:
                 exit()
 
             bboxes.append(bbox)
-            print(f"\nNUMBER OF TRACKERS: {n_of_trackers}")
+            print(f"\nNUMBER OF TRACKERS: {self.n_of_trackers}")
             create_more = input("Do you wanna CREATE more trackers? ")
             if create_more.lower() in ["n"]:
                 break
-            n_of_trackers += 1
+            self.n_of_trackers += 1
             # print("Press q to quit selecting boxes and start tracking")
             # print("Press any other key to select next object")
             # k = cv2.waitKey(0) & 0xFF
@@ -63,15 +65,20 @@ class Crop:
         self.video.read()
 
     def get_current_time(self):
-        return self.video.get(cv2.CAP_PROP_POS_MSEC)        
+        return self.video.get(cv2.CAP_PROP_POS_MSEC)
+
+    def create_img_folder(self):
+        for i in range(self.n_of_trackers):
+            path = os.path.join(".","imgs",self.file_name+"_slice-"+str(self.n_of_slices)+"_track-"+str(i))
+            if not os.path.isdir(path):
+                os.makedirs(path)
 
     @staticmethod
-    def delete_imgs():
-        op = input("Delete all images? ")
-        if op.lower() in ["s","y"]:
-            filelist = [ f for f in os.listdir("images") if f.endswith(".jpg") ]
-            for f in filelist:
-                os.remove(os.path.join("images", f))
+    def init_tracker(bboxes, frame):
+        multiTracker = cv2.MultiTracker_create()
+        for bbox in bboxes:
+            multiTracker.add(cv2.TrackerCSRT_create(), frame, bbox)
+        return multiTracker
 
     @staticmethod
     def set_start_video():
@@ -91,3 +98,13 @@ class Crop:
     def extract_more():
         extract_more = input("\nDo you wanna EXTRACT more frames? ")
         return True if extract_more.lower() in ["s","y"] else False
+
+    @staticmethod
+    def delete_imgs(path=os.path.join("imgs","")):
+        # op = input("Delete all images folders? ")
+        op = "y"
+        if op.lower() in ["s","y"]:
+            filelist = [f for f in os.listdir(path)]
+            for f in filelist:
+                os.removedirs(os.path.join(path,f))
+    
