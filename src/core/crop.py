@@ -1,7 +1,9 @@
 import os
+import shutil
+
 import cv2
 import imutils
-import shutil
+
 
 class Crop:
 

@@ -1,7 +1,10 @@
-import cv2
-from core.crop import Crop
-import imutils
+import datetime
 import os
+
+import cv2
+import imutils
+
+from core.crop import Crop
 
 # TO DO
 # test the pad - OK
@@ -45,7 +48,7 @@ if __name__ == "__main__":
         if crop.get_current_time() >= time_to_end:
             cv2.destroyAllWindows()
 
-            print(f"\n-> Current time in video: {round(crop.get_current_time()/1000, 2)} seconds")
+            print(f"\n-> Current time in video: {datetime.timedelta(seconds=crop.get_current_time()/1000)}")
             if crop.extract_more():              
                 while True:
                     time_to_start = crop.set_start_video()
