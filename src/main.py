@@ -7,8 +7,8 @@ import imutils
 from core.crop import Crop
 
 # TO DO
-# test the pad - OK
-# crop images, save each group in a folder - OK
+# a crop can take another tracker's box if they're close
+
 
 if __name__ == "__main__":
     Crop.delete_imgs()
@@ -62,7 +62,6 @@ if __name__ == "__main__":
                     if time_to_end > time_to_start:
                         break
                 pad = crop.add_pad()
-
                 bboxes, frame = crop.select_bboxes()                
                 crop.n_of_slices += 1                
                 multiTracker = crop.init_tracker(bboxes=bboxes, frame=frame)
@@ -79,7 +78,7 @@ if __name__ == "__main__":
             p2 = (x + w, y + h)
             p1_pad = (p1[0] - pad, p1[1] - pad)
             p2_pad = (p2[0] + pad, p2[1] + pad)
-        
+
             ROI = frame[y-pad:y+h+pad, x-pad:x+w+pad]
             crop.create_img_folder()         
 
@@ -89,7 +88,7 @@ if __name__ == "__main__":
             crop.crop_img(ROI, i, names_of_frames)
             names_of_frames[i] += 1
             
-            cv2.rectangle(frame, p1_pad, p2_pad, crop.colors[i], 2)
+            cv2.rectangle(frame, p1_pad, p2_pad, crop.colors[i], thickness=2)
 
         cv2.imshow('IC - D&D', frame)
         
@@ -98,5 +97,4 @@ if __name__ == "__main__":
             break
 
     crop.video.release()
-    cap.release()
     cv2.destroyAllWindows()
