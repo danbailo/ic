@@ -15,61 +15,64 @@ if __name__ == "__main__":
 
     file_name = "race.mp4"
 
-    cap = cv2.VideoCapture(os.path.join("videos",file_name))
+    draw_cap = cv2.VideoCapture(os.path.join("videos",file_name))
+    crop_cap = cv2.VideoCapture(os.path.join("videos",file_name))
 
     splited_name = file_name.split(".")
     file_name = splited_name[0]+"-"+splited_name[1]
 
     crop = Crop(file_name=file_name,
-                video=cap,
                 resize={"bool":True, "width": 700})
 
     time_to_start = crop.set_start_video()
     time_to_end = crop.set_end_video()
     pad = crop.add_pad()
 
-    crop.update_time_video(time_to_start)
-    bboxes, frame = crop.select_bboxes()
-    multiTracker = crop.init_tracker(bboxes=bboxes, frame=frame)
+    crop.update_time_video(draw_cap, time_to_start)
+    bboxes, draw_frame = crop.select_bboxes(draw_cap)
+    multiTracker = crop.init_tracker(bboxes=bboxes, frame=draw_frame)
 
     names_of_frames = {}
     while True:
 
-        retval, frame = crop.video.read()
+        draw_retval, draw_frame = draw_cap.read()
+        crop_retval, crop_frame = crop_cap.read()
 
         # end of video
-        if not retval:
+        if not draw_retval:
             break
 
         #resize the frame
         if crop.resize["bool"]:
-            frame = imutils.resize(frame, width=crop.resize["width"])        
+            draw_frame = imutils.resize(draw_frame, width=crop.resize["width"])
+            crop_frame = imutils.resize(crop_frame, width=crop.resize["width"])
 
-        if crop.get_current_time() >= time_to_end:
+        if crop.get_current_time(draw_cap) >= time_to_end:
             cv2.destroyAllWindows()
 
-            print(f"\n-> Current time in video: {datetime.timedelta(seconds=crop.get_current_time()/1000)}")
+            print(f"\n-> Current time in video: {datetime.timedelta(seconds=crop.get_current_time(draw_cap)/1000)}")
             if crop.extract_more():              
                 while True:
                     time_to_start = crop.set_start_video()
-                    if time_to_start > crop.get_current_time():
+                    if time_to_start > crop.get_current_time(draw_cap):
                         break
-
-                crop.update_time_video(time_to_start)
+                
+                draw_cap = crop.update_time_video(draw_cap, time_to_start)
+                crop_cap = crop.update_time_video(crop_cap, time_to_start)
                 
                 while True:
                     time_to_end = crop.set_end_video()
                     if time_to_end > time_to_start:
                         break
                 pad = crop.add_pad()
-                bboxes, frame = crop.select_bboxes()                
+                bboxes, draw_frame = crop.select_bboxes(draw_cap)                
                 crop.n_of_slices += 1                
-                multiTracker = crop.init_tracker(bboxes=bboxes, frame=frame)
+                multiTracker = crop.init_tracker(bboxes=bboxes, frame=draw_frame)
                 names_of_frames.clear()
             else: 
                 break
       
-        success, boxes = multiTracker.update(frame)
+        success, boxes = multiTracker.update(draw_frame)
 
         for i, newbox in enumerate(boxes):
             x, y, w, h = newbox
@@ -79,7 +82,7 @@ if __name__ == "__main__":
             p1_pad = (p1[0] - pad, p1[1] - pad)
             p2_pad = (p2[0] + pad, p2[1] + pad)
 
-            ROI = frame[y-pad:y+h+pad, x-pad:x+w+pad]
+            ROI = crop_frame[y-pad:y+h+pad, x-pad:x+w+pad]
             crop.create_img_folder()         
 
             if not names_of_frames.get(i):
@@ -88,13 +91,13 @@ if __name__ == "__main__":
             crop.crop_img(ROI, i, names_of_frames)
             names_of_frames[i] += 1
             
-            cv2.rectangle(frame, p1_pad, p2_pad, crop.colors[i], thickness=2)
+            cv2.rectangle(draw_frame, p1_pad, p2_pad, crop.colors[i], thickness=2)
 
-        cv2.imshow('IC - D&D', frame)
+        cv2.imshow('IC - D&D', draw_frame)
         
         # close
         if cv2.waitKey(1) & 0xFF == 27:  # Esc pressed
             break
 
-    crop.video.release()
+    draw_cap.release()
     cv2.destroyAllWindows()

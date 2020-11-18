@@ -21,16 +21,15 @@ class Crop:
         (128, 128, 128), #grey
     ]    
 
-    def __init__(self, file_name, video, resize=None):
+    def __init__(self, file_name, resize=None):
         self.file_name = file_name
-        self.video = video
         self.resize = resize
         self.n_of_slices = 1
 
-    def select_bboxes(self):
+    def select_bboxes(self, video):
         self.n_of_trackers = 1
         bboxes = []
-        retval, init_frame = self.video.read()
+        retval, init_frame = video.read()
         if not retval:
             print('Failed to read video')
             exit()
@@ -63,12 +62,15 @@ class Crop:
             #     break
         return bboxes, init_frame
 
-    def update_time_video(self, time_to_start):
-        self.video.set(cv2.CAP_PROP_POS_MSEC, (time_to_start))
-        self.video.read()
+    @staticmethod
+    def update_time_video(video, time_to_start):
+        video.set(cv2.CAP_PROP_POS_MSEC, (time_to_start))
+        video.read()
+        return video
 
-    def get_current_time(self):
-        return self.video.get(cv2.CAP_PROP_POS_MSEC)
+    @staticmethod
+    def get_current_time(video):
+        return video.get(cv2.CAP_PROP_POS_MSEC)
 
     def create_img_folder(self):
         for i in range(1, self.n_of_trackers+1):
