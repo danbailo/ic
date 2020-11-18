@@ -79,7 +79,10 @@ class Crop:
     def crop_img(self, frame, n_of_tracker, n_of_frame):
         path = os.path.join(".", "imgs", self.file_name+"_slice-"+str(self.n_of_slices)+"_tracker-"+str(n_of_tracker+1)) #+1 to order the name of file
         filename = os.path.join(path,"frame_"+str(n_of_frame[n_of_tracker])+".jpg")
-        cv2.imwrite(filename, frame)
+        try:
+            cv2.imwrite(filename, frame)
+        except Exception as err:
+            print(err)
 
     @staticmethod
     def init_tracker(bboxes, frame):
